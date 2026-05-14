@@ -1,0 +1,30 @@
+{
+  "name": "langgraph-rag-demo",
+  "version": "1.0.0",
+  "description": "Simple RAG application using LangGraph.js, Qdrant, and OpenAI",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": [
+    "rag",
+    "langgraph",
+    "qdrant",
+    "openai",
+    "vector-search"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/langgraph": "^0.0.32",
+    "@langchain/core": "^0.1.45",
+    "@qdrant/qdrant-js": "^1.7.0",
+    "openai": "^4.56.0",
+    "dotenv": "^16.4.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
