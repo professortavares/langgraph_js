@@ -2,6 +2,17 @@ import { SAMPLE_DOCUMENTS } from "./documents.js";
 import { embedText, validateOpenAIKey } from "./openai.js";
 import { recreateCollection, upsertDocuments } from "./qdrant.js";
 
+/**
+ * Seeds the Qdrant vector database with sample documents.
+ * This three-step process:
+ * 1. Validates OpenAI API credentials
+ * 2. Recreates the Qdrant collection for clean state
+ * 3. Generates embeddings for all documents
+ * 4. Upserts embeddings and metadata to Qdrant
+ *
+ * Called at application startup to ensure reproducible state.
+ * @throws {Error} If API validation, Qdrant connection, or embedding fails
+ */
 export async function seedDocuments() {
   const seedStartTime = Date.now();
   console.log("\n" + "═".repeat(70));

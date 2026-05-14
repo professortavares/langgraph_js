@@ -1,3 +1,12 @@
+/**
+ * Main application entry point for RAG demo.
+ * Orchestrates the full pipeline:
+ * 1. Seeds Qdrant with sample documents
+ * 2. Accepts user question (from CLI or default)
+ * 3. Executes RAG workflow
+ * 4. Displays results with detailed formatting
+ */
+
 import "dotenv/config";
 import { seedDocuments } from "./seed.js";
 import { runRagGraph } from "./graph.js";

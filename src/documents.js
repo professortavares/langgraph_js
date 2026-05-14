@@ -1,3 +1,10 @@
+/**
+ * Sample documents for RAG demonstration.
+ * These documents cover a fictional company's policies and procedures.
+ * Each document contains: id, title, and content.
+ * Content is embedded and stored in Qdrant for semantic search.
+ * @type {Array<{id: string, title: string, content: string}>}
+ */
 export const SAMPLE_DOCUMENTS = [
   {
     id: "doc_001",

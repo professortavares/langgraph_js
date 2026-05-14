@@ -2,6 +2,12 @@ import { StateGraph } from "@langchain/langgraph";
 import { embedText, generateAnswerWithOpenAI } from "./openai.js";
 import { searchSimilar } from "./qdrant.js";
 
+/**
+ * Retrieval node: embeds the question and searches Qdrant for similar documents.
+ * This is the first step of the RAG pipeline - finding relevant context.
+ * @param {Object} state - Current graph state containing question, retrievedDocs, answer
+ * @returns {Promise<Object>} Updated state with retrievedDocs populated
+ */
 async function retrieve(state) {
   const startTime = Date.now();
   console.log("\n🔍 [RETRIEVE NODE]");
@@ -35,6 +41,12 @@ async function retrieve(state) {
   }
 }
 
+/**
+ * Answer generation node: generates answer using retrieved documents and LLM.
+ * This is the second step of the RAG pipeline - synthesizing the answer.
+ * @param {Object} state - Current graph state with question and retrievedDocs
+ * @returns {Promise<Object>} Updated state with answer populated
+ */
 async function generateAnswer(state) {
   const startTime = Date.now();
   console.log("\n💭 [GENERATE ANSWER NODE]");
@@ -65,6 +77,16 @@ async function generateAnswer(state) {
   }
 }
 
+/**
+ * Executes the RAG (Retrieval Augmented Generation) workflow.
+ * Orchestrates the two-node pipeline:
+ * 1. retrieve: Find relevant documents using semantic search
+ * 2. generateAnswer: Generate answer using retrieved context
+ *
+ * @param {string} question - User's question to answer
+ * @returns {Promise<Object>} Final state with question, retrievedDocs, and answer
+ * @throws {Error} If either node fails (embedding, search, or LLM call)
+ */
 export async function runRagGraph(question) {
   console.log("\n" + "═".repeat(70));
   console.log("🚀 STARTING RAG GRAPH EXECUTION");

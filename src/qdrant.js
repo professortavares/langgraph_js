@@ -1,11 +1,16 @@
 import { QdrantClient } from "@qdrant/qdrant-js";
 
 const COLLECTION_NAME = "demo_rag_documents";
-const VECTOR_SIZE = 1536;
-const DISTANCE_METRIC = "Cosine";
+const VECTOR_SIZE = 1536; // Dimension of text-embedding-3-small vectors
+const DISTANCE_METRIC = "Cosine"; // Cosine similarity for semantic search
 
 let client = null;
 
+/**
+ * Gets or initializes the Qdrant client (singleton pattern).
+ * Connects to Qdrant at URL specified in QDRANT_URL env var.
+ * @returns {QdrantClient} Initialized Qdrant client instance
+ */
 export function getQdrantClient() {
   if (!client) {
     const url = process.env.QDRANT_URL || "http://localhost:6333";
@@ -14,6 +19,13 @@ export function getQdrantClient() {
   return client;
 }
 
+/**
+ * Waits for Qdrant to be available with exponential backoff retry logic.
+ * Necessary because Qdrant container may take time to fully initialize.
+ * @param {number} maxRetries - Maximum connection attempts
+ * @param {number} delayMs - Initial delay between retries (increases per attempt)
+ * @throws {Error} If unable to connect after all retries
+ */
 async function waitForQdrant(maxRetries = 5, delayMs = 1000) {
   let lastError;
   const qdrantUrl = process.env.QDRANT_URL || "http://localhost:6333";
@@ -37,6 +49,12 @@ async function waitForQdrant(maxRetries = 5, delayMs = 1000) {
   throw new Error(`Failed to connect to Qdrant at ${qdrantUrl} after ${maxRetries} retries: ${lastError.message}`);
 }
 
+/**
+ * Deletes existing collection and creates a new empty one.
+ * Called during document seeding to ensure clean state.
+ * Collection stores vector embeddings with document metadata (title, content).
+ * @throws {Error} If collection operations fail
+ */
 export async function recreateCollection() {
   console.log("\n   📦 [Qdrant] Preparing collection...");
   await waitForQdrant();
@@ -47,6 +65,7 @@ export async function recreateCollection() {
     await qdrant.deleteCollection(COLLECTION_NAME);
     console.log(`   ✓ Collection deleted`);
   } catch (error) {
+    // Ignore "not found" errors - collection may not exist yet
     if (!error.message.includes("not found")) {
       throw error;
     }
@@ -68,6 +87,12 @@ export async function recreateCollection() {
   console.log(`   ✓ Collection created successfully`);
 }
 
+/**
+ * Inserts documents with their vector embeddings into Qdrant.
+ * Payload stores document metadata for retrieval.
+ * @param {Array<{id: string, title: string, content: string, vector: number[]}>} documentsWithVectors
+ * @throws {Error} If upsert operation fails
+ */
 export async function upsertDocuments(documentsWithVectors) {
   console.log(`\n   📥 [Qdrant] Upserting documents...`);
   const qdrant = getQdrantClient();
@@ -94,6 +119,14 @@ export async function upsertDocuments(documentsWithVectors) {
   console.log(`   ✓ Successfully upserted ${points.length} documents to Qdrant`);
 }
 
+/**
+ * Searches for documents similar to the given vector using cosine similarity.
+ * Returns top-k most similar documents with their similarity scores.
+ * @param {number[]} vector - Query vector (typically from embedding a question)
+ * @param {number} limit - Maximum number of documents to return (default: 3)
+ * @returns {Promise<Array<{title: string, content: string, score: number}>>} Similar documents ranked by relevance
+ * @throws {Error} If search operation fails
+ */
 export async function searchSimilar(vector, limit = 3) {
   console.log(`   🔎 [Qdrant] Searching for similar documents...`);
   console.log(`      Query vector dimension: ${vector.length}`);
